@@ -1,4 +1,3 @@
-Source: MJ Menne CN Williams Jr. RS Vose NOAA National Climatic Data Center Asheville NC
 Day  ,JD  ,Month  ,State_id  ,Year  ,PRCP (in),SNOW (in),TAVE (F),TMAX (F),TMIN (F) 
 1,335,12,'212142',1895,0,0,12,26,-2 
 2,336,12,'212142',1895,0,0,-3,11,-16 

@@ -37,9 +37,11 @@ object TempData {
     val rainyCount = data.count(_.precip >= 1.0)
     println(s"There are $rainyCount rainy days. There is ${rainyCount*100.0/data.length} percent.")
     
-    val (rainySum, rainyCount2) = data.foldLeft(0.0 -> 0) { case ((sum, cnt), td) => 
+    val (rainySum, rainyCount2) = data.par.aggregate(0.0 -> 0)({ case ((sum, cnt), td) => 
       if(td.precip < 1.0) (sum, cnt) else (sum+td.tmax, cnt+1)
-    }
+    }, { case ((s1, c1), (s2, c2)) =>
+      (s1+s2, c1+c2)
+    })
     println(s"Average Rainy temp is ${rainySum/rainyCount2}")
     
     val rainyTemps = data.flatMap(td => if(td.precip < 1.0) Seq.empty else Seq(td.tmax))

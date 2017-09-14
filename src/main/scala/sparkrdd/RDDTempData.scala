@@ -58,9 +58,29 @@ object RDDTempData extends JFXApp {
 
   monthlyHighTemp.collect.sortBy(_._1) foreach println
   
+  println("Stdev of highs: "+data.map(_.tmax).stdev())
+  println("Stdev of lows: "+data.map(_.tmin).stdev())
+  println("Stdev of averages: "+data.map(_.tave).stdev())
+  
+  val keyedByYear = data.map(td => td.year -> td)
+  val averageTempsByYear = keyedByYear.aggregateByKey(0.0 -> 0)({ case ((sum, cnt), td) =>
+    (sum+td.tmax, cnt+1)
+  }, { case ((s1, c1), (s2, c2)) => (s1+s2, c1+c2) })
+  
   val plot = Plot.scatterPlots(Seq(
-      (monthlyHighTemp.map(_._1).collect(), monthlyHighTemp.map(_._2).collect(), 0xffff0000, 5),
-      (monthlyLowTemp.map(_._1).collect(), monthlyLowTemp.map(_._2).collect(), 0xff0000ff, 5)
+      (monthlyHighTemp.map(_._1).collect(), monthlyHighTemp.map(_._2).collect(), RedARGB, 5),
+      (monthlyLowTemp.map(_._1).collect(), monthlyLowTemp.map(_._2).collect(), BlueARGB, 5)
     ), "Temps", "Month", "Temperature")
   FXRenderer(plot, 800, 600)
+  
+  val bins = (-20.0 to 107.0 by 1.0).toArray
+  val counts = data.map(_.tmax).histogram(bins, true)
+  val hist = Plot.histogramPlot(bins, counts, RedARGB, false)
+  FXRenderer(hist, 800, 600)
+  
+  val averageByYearData = averageTempsByYear.collect().sortBy(_._1)
+  val longTermPlot = Plot.scatterPlotWithLines(averageByYearData.map(_._1), 
+      averageByYearData.map { case (_, (s, c)) => s/c }, symbolSize = 0, symbolColor = BlackARGB, 
+      lineGrouping = 1)
+  FXRenderer(longTermPlot, 800, 600)
 }

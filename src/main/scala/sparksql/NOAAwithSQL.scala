@@ -11,6 +11,10 @@ import org.apache.spark.sql.Row
 import swiftvis2.plotting._
 import swiftvis2.plotting.renderer.FXRenderer
 
+/*
+ * NOAA data from ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily/ in the by_year directory
+ */
+
 object NOAAwithSQL extends JFXApp {
   val spark = SparkSession.builder().master("local[*]").appName("NOAA Data").getOrCreate()
   import spark.implicits._
@@ -60,8 +64,8 @@ object NOAAwithSQL extends JFXApp {
   val lats = localData.map(_.getDouble(2))
   val lons = localData.map(_.getDouble(3))
   val cg = ColorGradient(0.0 -> BlueARGB, 50.0 -> GreenARGB, 100.0 -> RedARGB)
-  val plot = Plot.scatterPlot(lons, lats, "Global Temps", "Longitude", "Latitude",
-    3, temps.map(cg))
+  val plot = Plot.scatterPlot(lons, lats, title = "Global Temps", xLabel = "Longitude", 
+      yLabel = "Latitude", symbolSize = 3, symbolColor = temps.map(cg))
   FXRenderer(plot, 800, 600)
 
 }

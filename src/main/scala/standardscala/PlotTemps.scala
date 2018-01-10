@@ -25,8 +25,8 @@ object PlotTemps extends JFXApp {
   
   val rainData = data.filter(_.precip >= 0.0).sortBy(_.precip)
   val cg = ColorGradient((0.0, 0xFF000000), (1.0, 0xFF00FF00), (10.0, 0xFF0000FF))
-  val plot = Plot.scatterPlot(rainData.map(_.doy), rainData.map(_.tmax), "Temps", "Day of Year",
-      "Temp", 5, rainData.map(td => cg(td.precip)))
+  val plot = Plot.scatterPlot(rainData.map(_.doy), rainData.map(_.tmax), title = "Temps", 
+      xLabel = "Day of Year", yLabel = "Temp", symbolSize = 5, symbolColor = rainData.map(td => cg(td.precip)))
   FXRenderer(plot, 500, 500)
   
 //  stage = new JFXApp.PrimaryStage {

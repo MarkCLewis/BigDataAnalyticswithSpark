@@ -12,6 +12,10 @@ case class LAData(id: String, year: Int, period: String, value: Double)
 case class ZipData(zipCode: String, lat: Double, lon: Double, city: String, state: String, county: String)
 case class ZipCountyData(lat: Double, lon: Double, state: String, county: String)
 
+/*
+ * BLS data from https://download.bls.gov/pub/time.series/la/
+ * Zipcode data from https://www.gaslampmedia.com/download-zip-code-latitude-longitude-city-state-county-csv/
+ */
 object BLSTyped extends JFXApp {
   val spark = SparkSession.builder().master("local[*]").getOrCreate()
   import spark.implicits._
@@ -45,7 +49,8 @@ object BLSTyped extends JFXApp {
   val lats = fullJoined.map(_._2.lat).collect
   val lons = fullJoined.map(_._2.lon).collect
   val cg = ColorGradient(0.0 -> BlueARGB, 4.0 -> GreenARGB, 8.0 -> RedARGB)
-  val plot = Plot.scatterPlot(lons, lats, "Unemployment", "Longitude", "Latitude", 3, values.map(cg))
+  val plot = Plot.scatterPlot(lons, lats, title = "Unemployment", xLabel = "Longitude", 
+      yLabel = "Latitude", symbolSize = 3, symbolColor = values.map(cg))
   FXRenderer(plot, 800, 600)
   
   spark.stop()

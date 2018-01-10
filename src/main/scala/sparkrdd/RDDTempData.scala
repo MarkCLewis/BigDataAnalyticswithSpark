@@ -70,7 +70,7 @@ object RDDTempData extends JFXApp {
   val plot = Plot.scatterPlots(Seq(
       (monthlyHighTemp.map(_._1).collect(), monthlyHighTemp.map(_._2).collect(), RedARGB, 5),
       (monthlyLowTemp.map(_._1).collect(), monthlyLowTemp.map(_._2).collect(), BlueARGB, 5)
-    ), "Temps", "Month", "Temperature")
+    ), title = "Temps", xLabel = "Month", yLabel = "Temperature")
   FXRenderer(plot, 800, 600)
   
   val bins = (-20.0 to 107.0 by 1.0).toArray

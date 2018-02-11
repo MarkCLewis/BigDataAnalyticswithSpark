@@ -6,6 +6,7 @@ import org.apache.spark.sql.Encoders
 import org.apache.spark.sql.functions._
 import swiftvis2.plotting._
 import swiftvis2.plotting.renderer.FXRenderer
+import swiftvis2.spark._
 
 case class Series(sid: String, area: String, measure: String, title: String)
 case class LAData(id: String, year: Int, period: String, value: Double)
@@ -45,12 +46,10 @@ object BLSTyped extends JFXApp {
   
   val fullJoined = joined1.joinWith(countyLocs, '_2("title").contains('county) && '_2("title").contains('state))
   fullJoined.show()
-  val values = fullJoined.map(_._1._1.value).collect
-  val lats = fullJoined.map(_._2.lat).collect
-  val lons = fullJoined.map(_._2.lon).collect
   val cg = ColorGradient(0.0 -> BlueARGB, 4.0 -> GreenARGB, 8.0 -> RedARGB)
-  val plot = Plot.scatterPlot(lons, lats, title = "Unemployment", xLabel = "Longitude", 
-      yLabel = "Latitude", symbolSize = 3, symbolColor = values.map(cg))
+  val plot = Plot.scatterPlot(doubles(fullJoined)(_._2.lon), doubles(fullJoined)(_._2.lat), 
+      title = "Unemployment", xLabel = "Longitude", 
+      yLabel = "Latitude", symbolSize = 3, symbolColor = cg(doubles(fullJoined)(_._1._1.value)))
   FXRenderer(plot, 800, 600)
   
   spark.stop()

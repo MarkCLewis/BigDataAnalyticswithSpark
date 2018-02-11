@@ -11,6 +11,7 @@ import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions._
 import swiftvis2.plotting._
 import swiftvis2.plotting.renderer.FXRenderer
+import swiftvis2.spark._
 
 /*
  * NOAA data from ftp://ftp.ncdc.noaa.gov/pub/data/ghcn/daily/  in the by_year directory
@@ -51,17 +52,17 @@ object NOAAData extends JFXApp {
   val tmin2017 = data2017.filter('mtype === "TMIN").limit(1000000).drop("mtype").withColumnRenamed("value", "tmin")
   val combinedTemps2017 = tmax2017.join(tmin2017, Seq("sid", "date"))
   val dailyTemp2017 = combinedTemps2017.select('sid, 'date, ('tmax + 'tmin)/20*1.8+32 as "tave")
-  val stationTemp2017 = dailyTemp2017.groupBy('sid).agg(avg('tave))
+  val stationTemp2017 = dailyTemp2017.groupBy('sid).agg(avg('tave) as "tave")
   val joinedData2017 = stationTemp2017.join(stations, "sid")
-  val localData = joinedData2017.collect()
-  
-  val temps = localData.map(_.getDouble(1))
-  val lats = localData.map(_.getDouble(2))
-  val lons = localData.map(_.getDouble(3))
-  val cg = ColorGradient(0.0 -> BlueARGB, 50.0 -> GreenARGB, 100.0 -> RedARGB)
-  val plot = Plot.scatterPlot(lons, lats, title = "Global Temps", xLabel = "Longitude", 
-      yLabel = "Latitude", symbolSize = 3, symbolColor = temps.map(cg))
-  FXRenderer(plot, 800, 600)
+  joinedData2017.show()
+
+  {
+    implicit val df = joinedData2017
+    val cg = ColorGradient(0.0 -> BlueARGB, 50.0 -> GreenARGB, 100.0 -> RedARGB)
+    val plot = Plot.scatterPlot('lon, 'lat, title = "Global Temps", xLabel = "Longitude", 
+        yLabel = "Latitude", symbolSize = 3, symbolColor = cg('tave))
+    FXRenderer(plot, 800, 600)
+  }
   
   spark.stop()
 }

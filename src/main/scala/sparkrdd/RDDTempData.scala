@@ -6,6 +6,7 @@ import standardscala.TempData
 import scalafx.application.JFXApp
 import swiftvis2.plotting._
 import swiftvis2.plotting.renderer.FXRenderer
+import swiftvis2.spark._
 
 object RDDTempData extends JFXApp {
   val conf = new SparkConf().setAppName("Temp Data").setMaster("local[*]")
@@ -68,8 +69,8 @@ object RDDTempData extends JFXApp {
   }, { case ((s1, c1), (s2, c2)) => (s1+s2, c1+c2) })
   
   val plot = Plot.scatterPlots(Seq(
-      (monthlyHighTemp.map(_._1).collect(), monthlyHighTemp.map(_._2).collect(), RedARGB, 5),
-      (monthlyLowTemp.map(_._1).collect(), monthlyLowTemp.map(_._2).collect(), BlueARGB, 5)
+      (doubles(monthlyHighTemp)(_._1), doubles(monthlyHighTemp)(_._2), RedARGB, 5),
+      (doubles(monthlyLowTemp)(_._1), doubles(monthlyLowTemp)(_._2), BlueARGB, 5)
     ), title = "Temps", xLabel = "Month", yLabel = "Temperature")
   FXRenderer(plot, 800, 600)
   

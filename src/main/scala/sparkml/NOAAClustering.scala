@@ -3,6 +3,7 @@ package sparkml
 import org.apache.spark.sql.SparkSession
 import swiftvis2.plotting
 import swiftvis2.plotting._
+import swiftvis2.spark._
 import scalafx.application.JFXApp
 import swiftvis2.plotting.renderer.FXRenderer
 import org.apache.spark.ml.clustering.KMeans
@@ -51,13 +52,13 @@ object NOAAClustering extends JFXApp {
 
   //  println(kMeans.explainParams())
 
-  val x = stationsWithClusters.select('lon).as[Double].collect()
-  val y = stationsWithClusters.select('lat).as[Double].collect()
-  val predict = stationsWithClusters.select('cluster).as[Double].collect()
-  val cg = ColorGradient(0.0 -> BlueARGB, 1000.0 -> RedARGB, 2000.0 -> GreenARGB)
-  val plot = Plot.scatterPlot(x, y, title = "Stations", xLabel = "Longitude", yLabel = "Latitude",
-    symbolSize = 3, symbolColor = predict.map(cg))
-  FXRenderer(plot, 1000, 650)
+  {
+    implicit val df = stationsWithClusters
+ 		val cg = ColorGradient(0.0 -> BlueARGB, 1000.0 -> RedARGB, 2000.0 -> GreenARGB)
+ 		val plot = Plot.scatterPlot('lon, 'lat, title = "Stations", xLabel = "Longitude", yLabel = "Latitude",
+  		symbolSize = 3, symbolColor = cg('cluster))
+ 		FXRenderer(plot, 1000, 650)
+  }
 
   val data2017 = spark.read.schema(Encoders.product[NOAAData].schema).
     option("dateFormat", "yyyyMMdd").csv("data/2017.csv")
@@ -78,6 +79,7 @@ object NOAAClustering extends JFXApp {
   }
 
   def calcClusterData(df: DataFrame, cluster: Int): Option[ClusterData] = {
+    println("Calc for cluster "+cluster)
     val filteredData = df.filter('cluster === cluster).cache()
     val tmaxs = filteredData.filter('measure === "TMAX").cache()
     val tmins = filteredData.filter('measure === "TMIN").cache()
@@ -108,12 +110,12 @@ object NOAAClustering extends JFXApp {
     cd
   }
 
-  val clusterData = (0 until 20).par.flatMap(i => calcClusterData(joinedData, i)).seq
+  val clusterData = (0 until 2000).par.flatMap(i => calcClusterData(joinedData, i)).seq
   val clusterDS = spark.createDataset(clusterData)
   clusterDS.show()
-
+  
+  // Code for plotting the results of the linear regression to fit the sinusoid.
   // y = a*sin(doy) + b*cos(doy) + c
-
   //    val doy = withLinearFit.select('doy).as[Double].collect(): PlotDoubleSeries
   //    val maxTemp = withLinearFit.select('value).as[Double].collect(): PlotDoubleSeries
   //    val pmaxTemp = withLinearFit.select('pmaxTemp).as[Double].collect(): PlotDoubleSeries
